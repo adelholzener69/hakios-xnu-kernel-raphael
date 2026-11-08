@@ -27,12 +27,12 @@ Every driver the kernel can be built with. `CONFIG_HAKIOS_<NAME>=y` in a defconf
 
 | Driver | Files | Requires | Boot arguments | qemu | raphael | |
 |---|---|---|---|---|---|
-| **`HAKIOS_ADSP`**<br>the audio DSP started and linked (adsp=1, adsp_step=N); the battery's state comes through it too. Needs the DSP's firmware from the phone (fw-audio/) | `hakios.adsp.c` |  | `adsp=`, `adsp_again=`, `adsp_apr_wait=`, `adsp_keep=`, `adsp_listen=`, `adsp_new=`, `adsp_pause=`, `adsp_return=` and 3 more |  |  | |
-| **`HAKIOS_SPEAKER`**<br>the two speaker amplifiers on I2C, and their watch of temperature and battery | `hakios.speaker.c` |  | `speaker_probe=` |  |  | |
-| **`HAKIOS_SOUND`**<br>the speakers playing (sound=N): what the DSP's services are told, the feeder, and the speakers' guard that limits what the amplifiers get | `hakios.sound.c`<br>`hakios.guard.c` | `HAKIOS_ADSP`, `HAKIOS_SPEAKER` | `ios_amp_idle=`, `ios_debug=`, `ios_gain=`, `sound=`, `sound_below=`, `sound_gain=`, `sound_guard_as=`, `sound_pause=` and 1 more |  |  | |
+| **`HAKIOS_ADSP`**<br>the audio DSP started and linked (adsp=1, adsp_step=N); the battery's state comes through it too. Needs the DSP's firmware from the phone (fw-audio/) | `hakios.adsp.c` |  | `adsp=`, `adsp_again=`, `adsp_apr_wait=`, `adsp_keep=`, `adsp_listen=`, `adsp_new=`, `adsp_pause=`, `adsp_return=` and 3 more |  | built | |
+| **`HAKIOS_SPEAKER`**<br>the two speaker amplifiers on I2C, and their watch of temperature and battery | `hakios.speaker.c` |  | `speaker_probe=` |  | built | |
+| **`HAKIOS_SOUND`**<br>the speakers playing (sound=N): what the DSP's services are told, the feeder, and the speakers' guard that limits what the amplifiers get | `hakios.sound.c`<br>`hakios.guard.c` | `HAKIOS_ADSP`, `HAKIOS_SPEAKER` | `ios_amp_idle=`, `ios_debug=`, `ios_gain=`, `sound=`, `sound_below=`, `sound_gain=`, `sound_guard_as=`, `sound_pause=` and 1 more |  | built | |
 | **`HAKIOS_MIC`**<br>the microphones, through the audio DSP (mic=N) | `hakios.mic.c` | `HAKIOS_ADSP`, `HAKIOS_SOUND` | `mic=`, `mic_adc=`, `mic_input=`, `mic_main=`, `mic_secs=`, `mic_tap=`, `mic_test=` |  |  | |
 | **`HAKIOS_VIRTIO_SOUND`**<br>QEMU's virtio sound device as the player of /dev/hakios-audio (virtio_sound=1). QEMU only | `hakios.virtio_sound.c` |  | `virtio_sound=` | built | built | |
-| **`HAKIOS_RAPHAEL_AUDIO`**<br>the Redmi K20 Pro's loudspeaker: the TFA9874 amplifier on the SE1 I2C bus (NXP's code, Apache-2.0) and the quaternary MI2S port the audio DSP opens for it (adsp_step=12 tfa=1 tfa_tx=1). Needs fw-audio/mono.cnt | `hakios.raphael_amp.c`<br>`hakios.raphael_mi2s.c`<br>`hakios.raphael_tfa.c`<br>`hakios.tfa_init.c`<br>`hakios.tfa_dsp.c`<br>`hakios.tfa_container.c`<br>`hakios.tfa_glue.c` | `HAKIOS_ADSP` | `amp_probe=`, `ios_audio=`, `mi2s_hold=`, `tfa=`, `tfa_debug=`, `tfa_inband=`, `tfa_oob=`, `tfa_tx=` |  |  | |
+| **`HAKIOS_RAPHAEL_AUDIO`**<br>the Redmi K20 Pro's loudspeaker: the TFA9874 amplifier on the SE1 I2C bus (NXP's code, Apache-2.0) and the quaternary MI2S port the audio DSP opens for it (adsp_step=12 tfa=1 tfa_tx=1). Needs fw-audio/mono.cnt | `hakios.raphael_amp.c`<br>`hakios.raphael_mi2s.c`<br>`hakios.raphael_tfa.c`<br>`hakios.tfa_init.c`<br>`hakios.tfa_dsp.c`<br>`hakios.tfa_container.c`<br>`hakios.tfa_glue.c` | `HAKIOS_ADSP` | `amp_probe=`, `ios_audio=`, `mi2s_hold=`, `tfa=`, `tfa_debug=`, `tfa_inband=`, `tfa_oob=`, `tfa_tx=` |  | built | |
 
 ## bluetooth
 
@@ -45,7 +45,7 @@ Every driver the kernel can be built with. `CONFIG_HAKIOS_<NAME>=y` in a defconf
 | Driver | Files | Requires | Boot arguments | qemu | raphael | |
 |---|---|---|---|---|---|
 | **`HAKIOS_CAMERA`**<br>the cameras (cam=N): the sensors on the CCI bus and the ISP's interface. The sensors, their tables (fw-camera/) and the pins are the POCO X5 Pro's | `hakios.camera.c` |  | `cam_after=`, `cam_fake=`, `cam_fake_fps=`, `cam_frames=`, `cam_gain=`, `cam_keep_mb=`, `cam_mode=`, `cam_pattern=` and 4 more |  |  | |
-| **`HAKIOS_TORCH`**<br>the flashlight: the flash LED module of the PM8350C (torch=1); it stays off while the battery is too warm | `hakios.torch.c` |  | `torch_max_s=`, `torch_secs=` |  |  | |
+| **`HAKIOS_TORCH`**<br>the flashlight: the flash LED module of the PM8350C (torch=1); it stays off while the battery is too warm | `hakios.torch.c` |  | `torch_max_s=`, `torch_secs=` |  | built | |
 
 ## core
 

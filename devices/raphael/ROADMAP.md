@@ -30,7 +30,7 @@ The order is roughly the order in which things matter. See [README.md](README.md
       Stage 1: kernel brings the chip up and scans. Stage 2: a `/dev/cu.bluetooth` HCI device. Stage 3: make
       `bluetoothd`/`BlueTool` (written for Broadcom chips) accept it. No iOS-side code exists yet.
 - [ ] **Sensor DSP (SLPI)** for auto-brightness, auto-rotate and proximity. Firmware: `slpi_rp.*` in the modem image.
-- [ ] **Torch** (PM8150L flash LED, reference: `leds-qpnp-flash-v2.c` of an SM8150 kernel).
+- [x] **Torch** (PM8150L flash LED, channel 0 at most 100 mA): Control Center's flashlight, with dimming (`torch=3`).
 - [ ] **Haptics** (ERM motor on the PM8150B).
 - [ ] **Camera.**
 - [ ] **Fingerprint** (in-display). Not researched.

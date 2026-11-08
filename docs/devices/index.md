@@ -8,7 +8,7 @@ Every device with a repository, and how far each part of it works. A device of y
 | Device | SoC | display | touch | buttons | cpu | gpu | storage | audio | battery | haptic | camera | torch | wifi | bluetooth | cellular | network |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | [QEMU virt (aarch64)](qemu.md) | `none` | yes | yes | yes |  | no | yes | yes |  |  |  |  |  |  |  | yes |
-| [Redmi K20 Pro / Mi 9T Pro](raphael.md) | `sm8150` | yes | yes | yes | yes | yes | no | yes | yes | no | no | no | partly | no | no |  |
+| [Redmi K20 Pro / Mi 9T Pro](raphael.md) | `sm8150` | yes | yes | yes | yes | yes | no | yes | yes | no | no | yes | partly | no | no |  |
 
 An empty cell is a part nobody has looked at on that device yet.
 

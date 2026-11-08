@@ -28,7 +28,7 @@
 | cellular | no |  |
 | bluetooth | no |  |
 | haptic | no |  |
-| torch | no |  |
+| torch | works | Control Center flashlight with dimming, PM8150L flash LED at most 100 mA (torch=3) |
 | camera | no |  |
 
 The state is what has been seen on this device, written down in `devices/raphael/device.conf`; a part the table does not name has not been looked at.
