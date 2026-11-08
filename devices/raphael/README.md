@@ -16,8 +16,9 @@ installed, your Android stays untouched, and a reboot brings it back.
 | Battery level | works | |
 | Wi-Fi | **partly** | WPA2 and WPA3 join and load pages. Joining is slow, and switching Wi-Fi off and on in Settings can leave the network list empty for a while |
 | Sound | works | loudspeaker only (add `adsp_step=12 adsp_keep=1 adsp_pause=500 tfa=1 tfa_tx=1 ios_audio=1` to the boot arguments; needs `fw-audio/` from your phone). The amplifier powers down after 30 s of silence and wakes when a sound comes |
+| Vibration | works | system feedback and vibration (add `haptic=5`) |
 | Torch | works | Control Center flashlight with dimming (add `torch=3` to the boot arguments) |
-| Bluetooth, mobile data, camera, haptics | not yet | |
+| Bluetooth, mobile data, camera | not yet | |
 | Saved storage | no | everything lives in RAM and is gone after a reboot |
 
 ## What you need

@@ -1083,6 +1083,38 @@ mount_writable(void)
 }
 
 /*
+ * How much memory processes may lock (mlock, vm.global_user_wire_limit). XNU sets it at boot to a share of the RAM, as if
+ * the kernel's own wired memory were small. Here it is not: the RAM disk the system runs from, the memory filesystem of
+ * /private/var and the GPU's surfaces stay wired, 3.4 GB and more of a phone's 4.2. Past the limit every mlock fails, and
+ * the first to need one is the audio server: each time a sound or a haptic starts it locks its I/O buffer (a few hundred KB;
+ * HALB_IOBufferManager "failed to lock the buffer", then "Unable to start IO", and AudioQueueStart says 'nope'). So sound and
+ * vibration worked for a while after a boot and then stopped for good (raphael, 8 November). The limit is set here to all of
+ * the RAM but the last 96 MB, before any daemon starts.
+ */
+static void
+raise_wire_limit(void)
+{
+	uint64_t memsize = 0, old_global = 0, old_task = 0, limit;
+	size_t len = sizeof(memsize);
+
+	if (sysctlbyname("hw.memsize", &memsize, &len, NULL, 0) != 0 || memsize < (512ull << 20)) {
+		return;
+	}
+	limit = memsize - (96ull << 20);
+	len = sizeof(old_global);
+	(void)sysctlbyname("vm.global_user_wire_limit", &old_global, &len, NULL, 0);
+	len = sizeof(old_task);
+	(void)sysctlbyname("vm.user_wire_limit", &old_task, &len, NULL, 0);
+	if (old_global >= limit) {
+		return;
+	}
+	(void)sysctlbyname("vm.global_user_wire_limit", NULL, NULL, &limit, sizeof(limit));
+	(void)sysctlbyname("vm.user_wire_limit", NULL, NULL, &limit, sizeof(limit));
+	printf("[ ok ] memory processes may lock: %llu MB (was %llu, per process %llu), of %llu MB\n", (unsigned long long)(limit >> 20),
+	    (unsigned long long)(old_global >> 20), (unsigned long long)(old_task >> 20), (unsigned long long)(memsize >> 20));
+}
+
+/*
  * What the last boot left in /private/var, back out of the phone's flash (var_store=1): the
  * memory filesystem is empty at every boot, so everything Darwin writes -- the home screen's layout,
  * the applications' own data, the snapshots and the baked wallpaper -- would otherwise be new
@@ -1559,6 +1591,7 @@ main(int argc, char **argv, char **envp)
 
 	show_system();
 	mount_writable();
+	raise_wire_limit();
 	restore_var();
 	test_files();
 	test_writable();

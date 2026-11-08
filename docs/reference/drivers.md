@@ -64,6 +64,7 @@ Every driver the kernel can be built with. `CONFIG_HAKIOS_<NAME>=y` in a defconf
 | Driver | Files | Requires | Boot arguments | qemu | raphael | |
 |---|---|---|---|---|---|
 | **`HAKIOS_HAPTIC`**<br>the vibration motor: an Awinic AW86927 driving a linear resonant actuator (haptic=N), its waveforms from fw-haptic/ | `hakios.haptic.c` |  | `haptic=`, `haptic_effect=` |  |  | |
+| **`HAKIOS_RAPHAEL_HAPTIC`**<br>the Redmi K20 Pro's vibration motor: the PM8150B's haptics block driving an ERM (haptic=N). The same /dev/hakios-haptic as HAPTIC (redwood's Awinic chip): a kernel builds one of the two, never both | `hakios.raphael_haptic.c` |  | `haptic=`, `haptic_ms=` |  | built | |
 
 ## input
 

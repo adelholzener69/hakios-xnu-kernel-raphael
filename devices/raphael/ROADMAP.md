@@ -16,9 +16,10 @@ The order is roughly the order in which things matter. See [README.md](README.md
       (A save writes the other of two slots first, so the last good copy should survive; not yet tried on the phone.)
 - [~] **Wi-Fi.** Joins WPA2 and WPA3. Open: slow join; a freshly restarted radio hears nothing for a few seconds (the
       driver now asks again); no automatic rejoin by the kernel after a toggle or reboot.
-- [~] **Sound.** Loudspeaker works, the amplifier sleeps after 30 s and wakes. Open: ringtone choice and preview, the
-      tri-tone and SMS sound IDs (1007, 1315), a very quiet keyboard click, and confirmation by daily use that the
-      `/var` restore no longer makes the audio server refuse playback.
+- [x] **Sound.** Loudspeaker works, the amplifier sleeps after 30 s and wakes. Fixed 8 November: sound and vibration
+      stopped for good after a while because the audio server could no longer lock its I/O buffer (the lockable-memory
+      limit was below what this port keeps wired; init now raises it). Open: ringtone choice and preview, the tri-tone
+      and SMS sound IDs (1007, 1315), a very quiet keyboard click.
 - [ ] **Mobile data, calls, SMS.** The modem driver is left out of the build. Largest item.
 - [ ] **Charging while it runs.** Battery level works; charging under this kernel is not supported yet.
 - [ ] **Power menu, shutdown, reboot from the phone.**
@@ -31,7 +32,7 @@ The order is roughly the order in which things matter. See [README.md](README.md
       `bluetoothd`/`BlueTool` (written for Broadcom chips) accept it. No iOS-side code exists yet.
 - [ ] **Sensor DSP (SLPI)** for auto-brightness, auto-rotate and proximity. Firmware: `slpi_rp.*` in the modem image.
 - [x] **Torch** (PM8150L flash LED, channel 0 at most 100 mA): Control Center's flashlight, with dimming (`torch=3`).
-- [ ] **Haptics** (ERM motor on the PM8150B).
+- [x] **Haptics** (ERM motor on the PM8150B): system feedback and vibration from iOS (`haptic=5`).
 - [ ] **Camera.**
 - [ ] **Fingerprint** (in-display). Not researched.
 - [ ] **Thermal protection** (the thermal driver is off in the config).

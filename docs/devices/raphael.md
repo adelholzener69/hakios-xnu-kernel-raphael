@@ -27,7 +27,7 @@
 | storage | no | the RAM image only; nothing is saved |
 | cellular | no |  |
 | bluetooth | no |  |
-| haptic | no |  |
+| haptic | works | the PM8150B haptics block driving the ERM motor, from iOS (haptic=5) |
 | torch | works | Control Center flashlight with dimming, PM8150L flash LED at most 100 mA (torch=3) |
 | camera | no |  |
 
