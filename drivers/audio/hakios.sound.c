@@ -1087,6 +1087,7 @@ static volatile uint32_t ring_head, ring_tail;  /* frames: written by the sink, 
 static volatile uint64_t last_write_us;         /* when the latest write of any kind came (raphael's jitter buffer) */
 static volatile uint64_t last_sound_us;         /* when the latest write that was not silence came */
 static volatile bool feeder_runs, watcher_runs;
+static volatile bool trim_backlog;               /* the amplifier has just been started: the feeder drops the backlog that built up meanwhile (raphael) */
 static uint64_t fed_frames, silent_frames, darwin_frames;
 static volatile uint32_t darwin_peak;              /* the largest sample since the amplifiers last started */
 
@@ -1205,6 +1206,20 @@ period_fill_darwin(unsigned period)
 			available = 0;
 			n = 0;
 			jitter_primed = false;
+		}
+
+		if (ios_amp_ready && trim_backlog) {
+			/*
+			 * The amplifier takes about 0.25 s to start, and iOS wrote on meanwhile: that much stays in the ring for as long as it
+			 * goes on writing (it writes at the pace the DSP plays), a delay of a quarter of a second on everything. Keep the newest
+			 * 100 ms; the start of the sound that woke the amplifier is lost, which is less than the delay would be.
+			 */
+			trim_backlog = false;
+			if (available > 2 * JITTER_FRAMES) {
+				tail = ring_head - 2 * JITTER_FRAMES;
+				available = 2 * JITTER_FRAMES;
+				n = available < PERIOD_FRAMES ? available : PERIOD_FRAMES;
+			}
 		}
 
 		if (!jitter_primed && (available >= JITTER_FRAMES || (writer_idle && available != 0))) {
@@ -1373,6 +1388,7 @@ raphael_watch_thread(__unused void *parameter, __unused wait_result_t result)
 			if (!ios_amp_ready) {
 				say_when("iOS plays: the amplifier is started");
 				if (raphael_amp_power(true)) {
+					trim_backlog = true;
 					ios_amp_ready = true;
 					starts++;
 				} else {
@@ -1431,7 +1447,7 @@ hakios_raphael_ios_start(void)
 		return false;
 	}
 	thread_deallocate(feeder);
-	hakios_audio_set_sink("the speaker (the audio DSP, raphael)", ios_sink);
+	hakios_audio_set_sink("the speaker (the audio DSP, raphael)", darwin_sink);
 	say("sound: WHAT IOS PLAYS GOES TO THE SPEAKER from here on (cut to %u/256), until the run ends\n", ios_gain);
 	lck_mtx_unlock(&sound_lock);
 	return true;

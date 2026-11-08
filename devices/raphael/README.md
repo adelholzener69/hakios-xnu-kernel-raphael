@@ -15,7 +15,7 @@ installed, your Android stays untouched, and a reboot brings it back.
 | GPU | works | Adreno 640, OpenGL ES |
 | Battery level | works | |
 | Wi-Fi | **partly** | WPA2 and WPA3 join and load pages. Joining is slow, and switching Wi-Fi off and on in Settings can leave the network list empty for a while |
-| Sound | works in the earlier tree | loudspeaker only; being moved over to this layout, **off in this build** |
+| Sound | works | loudspeaker only (add `adsp_step=12 adsp_keep=1 adsp_pause=500 tfa=1 tfa_tx=1 ios_audio=1` to the boot arguments; needs `fw-audio/` from your phone). The amplifier powers down after 30 s of silence and wakes when a sound comes |
 | Bluetooth, mobile data, camera, haptics, torch | not yet | |
 | Saved storage | no | everything lives in RAM and is gone after a reboot |
 
