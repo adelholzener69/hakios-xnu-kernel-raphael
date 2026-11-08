@@ -85,10 +85,46 @@ minute to list networks.
 | `kit/` | firmware copy script, device-tree and UEFI-image builders |
 | `uefi/` | the phone's UEFI port |
 | `build.conf`, `raphael.jobs` | settings and start-up jobs for the RAM image |
+| `ROADMAP.md` | what is left for a daily driver, as a checklist |
 | `README.port-notes.md` | the earlier port's notes, kept for reference |
 
 The raphael-only drivers live in `drivers/` next to the others: `hakios.raphael_touch.c` (touch),
 `hakios.raphael_{amp,mi2s,tfa}.c` (loudspeaker), `hakios.display.c` and `hakios.brightness.c`.
+
+## Optional: third-party software (package manager)
+
+You do **not** need a jailbreak. This kernel does not enforce code signing (AMFI is a stand-in, nothing is signed), so
+unsigned programs run as they are. What makes third-party software convenient is a package manager, and the repository
+already has one as an option: the Procursus bootstrap (apt, dpkg, a shell and the usual command-line tools) with the
+Sileo app, all under `/var/jb` (the "rootless" layout).
+
+```sh
+tools/mk-jb.sh                    # fetches the bootstrap and Sileo into jb/ (never committed)
+JB=1 FLASHBOOT=prepared SYSTEM=1 ... build the image as in step 3 above
+```
+
+The bootstrap comes from the Procursus project's public mirror (`apt.procurs.us`); nothing of Apple's is involved.
+At boot, init puts `/var/jb` in place and, with saved storage on, packages you install stay across restarts.
+**Status:** this works upstream on another phone; it has **not been tried on the K20 Pro yet**. The packages are built for
+iOS 15 and up, so tools run, but anything that needs a kernel feature this port does not have (for example Bluetooth)
+will not.
+
+## Newer iOS versions (17, 18, 26): how hard?
+
+Today: iOS 16.5 userland on XNU 8796 (Darwin 22.5). Going up is possible in principle and large in practice:
+
+- **A matching kernel for every iOS version.** The kernel and the userland have to agree (system calls, Mach traps, the
+  shared memory page, memory management). Apple publishes XNU's source with a delay, and the parts of its kernelcache
+  that are not open (code signing, sandboxing, many drivers) have to be replaced by stand-ins, as this port already does
+  for 16.5. Each version changes what those stand-ins must answer.
+- **The userland shims.** The port's hooks are written against 16.5's own programs (hundreds of method and symbol
+  names in SpringBoard, backboardd, mediaserverd and others). They would have to be found again for each version.
+- **The GPU path.** Metal on the Adreno is fitted to 16.5's Metal. Newer Metal has new requirements.
+- **The identity.** iOS 17 and 18 run on iPhone XS and newer; iOS 26 needs iPhone 11 (A13) or newer. The identity the
+  port presents (now an iPhone X) would have to change, and newer chips are assumed to have features this phone lacks.
+
+My estimate (a guess, not a measurement): **iOS 17 is a multi-month project, iOS 18 harder, iOS 26 research with no
+guarantee.** There is no practical reason to start before the daily-driver list in [ROADMAP.md](ROADMAP.md) is done.
 
 ## Credits
 
