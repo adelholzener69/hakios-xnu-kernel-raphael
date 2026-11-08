@@ -40,5 +40,6 @@ driver RAPHAEL_AUDIO
 	file    bsd/dev/hakios.tfa_container.c
 	file    bsd/dev/hakios.tfa_glue.c
 	requires ADSP
+	default n
 	help    the Redmi K20 Pro's loudspeaker: the TFA9874 amplifier on the SE1 I2C bus (NXP's code, Apache-2.0) and the
 	help    quaternary MI2S port the audio DSP opens for it (adsp_step=12 tfa=1 tfa_tx=1). Needs fw-audio/mono.cnt
