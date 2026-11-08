@@ -119,6 +119,30 @@ raw(double seconds)
 	return written < total;
 }
 
+static void route(void);
+static id send(id object, const char *selector);
+static const char *text(id string);
+
+/* AudioQueueStart refused: what the audio session says, and whether activating it by hand lets the start through. */
+static void
+start_refused(AudioQueueRef queue, OSStatus status)
+{
+	id session = send((id)objc_getClass("AVAudioSession"), "sharedInstance");
+	id error = NULL;
+	BOOL active;
+
+	printf("sound_test: START REFUSED (%d): category %s, mode %s, other audio playing %d, silence hint %d\n", (int)status,
+	    text(send(session, "category")), text(send(session, "mode")),
+	    session ? ((BOOL (*)(id, SEL))objc_msgSend)(session, sel_registerName("isOtherAudioPlaying")) : -1,
+	    session ? ((BOOL (*)(id, SEL))objc_msgSend)(session, sel_registerName("secondaryAudioShouldBeSilencedHint")) : -1);
+	route();
+	active = session ? ((BOOL (*)(id, SEL, BOOL, id *))objc_msgSend)(session, sel_registerName("setActive:error:"), YES, &error) : NO;
+	printf("sound_test: START REFUSED: setActive:YES -> %d, error %ld %s\n", active,
+	    error ? ((long (*)(id, SEL))objc_msgSend)(error, sel_registerName("code")) : 0, text(send(error, "localizedDescription")));
+	status = AudioQueueStart(queue, NULL);
+	printf("sound_test: START REFUSED: AudioQueueStart again, after setActive: %d\n", (int)status);
+}
+
 static int
 tone(double seconds)
 {
@@ -152,6 +176,9 @@ tone(double seconds)
 	printf("sound_test: a tone of %.0f and %.0f Hz at %.2f of full scale for %.1f s: AudioQueueStart: %d\n", frequency[0],
 	    frequency[1], peak, seconds,
 	    (int)status);
+	if (status != 0) {
+		start_refused(queue, status);
+	}
 	if (status == 0) {
 		/* a slow machine may take its time: wait for the end, three times as long as it should take at most */
 		for (int tenths = 0; frame < frames_wanted && tenths < 30 * seconds + 100; tenths++) {

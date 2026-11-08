@@ -931,6 +931,40 @@ set_times(const struct entry *e)
 }
 
 /*
+ * What is not put back although it was saved: state that is made again by the daemon that keeps it, and that does harm when it is
+ * stale. 8 November (raphael): with the store restored, iOS's audio server refused every AudioQueueStart ('nope') for the first
+ * minute or more of a boot; with nothing restored it never did. Caches, and the audio server's own preferences, are left out here.
+ */
+static unsigned skipped_on_load;
+
+static int
+contains(const char *haystack, const char *needle)
+{
+	size_t n = strlen(needle);
+
+	for (; *haystack != 0; haystack++) {
+		if (strncmp(haystack, needle, n) == 0) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static int
+skip_on_load(const char *relative)
+{
+	size_t n = strlen(relative);
+
+	if (contains(relative, "/Caches/") || (n >= 7 && strcmp(relative + n - 7, "/Caches") == 0) ||
+	    strncmp(relative, "Caches/", 7) == 0) {
+		return 1;
+	}
+	return contains(relative, "Preferences/com.apple.celestial") || contains(relative, "Preferences/com.apple.mediaserverd") ||
+	    contains(relative, "Preferences/com.apple.audio") || contains(relative, "audiomxd") ||
+	    contains(relative, "coreaudio");
+}
+
+/*
  * One entry out of the archive and into /private/var. make: with 0, the entry is only read past
  * (the first pass, which proves the archive's checksum before anything is made).
  */
@@ -957,6 +991,10 @@ unpack_one(int make)
 	relative[e.pathlen] = 0;
 	if (make && !whole_path(relative, e.pathlen)) {
 		make = 0;               /* read past it: an archive is not to make names of its own choosing */
+	}
+	if (make && skip_on_load(relative)) {
+		make = 0;               /* read past it: made again by whoever keeps it (see skip_on_load) */
+		skipped_on_load++;
 	}
 	if (make) {
 		switch (e.kind) {
@@ -1189,6 +1227,7 @@ load(void)
 	printf("var_store: %llu directories, %llu files (%llu bytes), %llu links back in /private/var\n",
 	    (unsigned long long)made_dirs, (unsigned long long)made_files, (unsigned long long)made_bytes,
 	    (unsigned long long)made_links);
+	printf("var_store: %u entries left out on purpose (caches, the audio server's preferences)\n", skipped_on_load);
 	if (short_files != 0) {
 		printf("var_store: %llu files did not fit: %llu bytes of them are not there\n",
 		    (unsigned long long)short_files, (unsigned long long)lost_bytes);
