@@ -105,7 +105,9 @@ JB=1 FLASHBOOT=prepared SYSTEM=1 ... build the image as in step 3 above
 
 The bootstrap comes from the Procursus project's public mirror (`apt.procurs.us`); nothing of Apple's is involved.
 At boot, init puts `/var/jb` in place and, with saved storage on, packages you install stay across restarts.
-**Status:** this works upstream on another phone; it has **not been tried on the K20 Pro yet**. The packages are built for
+**Status on the K20 Pro (8 November 2026):** Sileo opens and the package index loads, but with the package manager in the image
+**sound is refused** (AudioQueueStart returns 'nope' for minutes after boot; the same image without it plays every tone), and after Sileo has
+drawn, text turns into black blocks and the app-switcher cards turn flat green. Use the option for experiments only, not for daily use. The packages are built for
 iOS 15 and up, so tools run, but anything that needs a kernel feature this port does not have (for example Bluetooth)
 will not.
 

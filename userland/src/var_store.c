@@ -937,6 +937,81 @@ set_times(const struct entry *e)
  */
 static unsigned skipped_on_load;
 
+/* boot-arg var_skip=a,b,c : more names (substrings of a path) not put back, to find what stale state does harm */
+static char skip_args[256];
+static const char *skip_more[8];
+static int skip_more_count;
+
+static void
+read_skip_args(void)
+{
+	static char args[1024];
+	size_t len = sizeof(args) - 1;
+
+	if (sysctlbyname("kern.bootargs", args, &len, NULL, 0) != 0) {
+		return;
+	}
+	args[len < sizeof(args) ? len : sizeof(args) - 1] = 0;
+	for (char *p = args; *p;) {
+		while (*p == ' ') {
+			p++;
+		}
+		if (strncmp(p, "var_skip=", 9) == 0) {
+			size_t i = 0;
+
+			for (p += 9; *p && *p != ' ' && i < sizeof(skip_args) - 1; p++) {
+				skip_args[i++] = *p;
+			}
+			skip_args[i] = 0;
+			skip_more[skip_more_count++] = skip_args;
+			for (char *q = skip_args; *q; q++) {
+				if (*q == ',' && skip_more_count < 8) {
+					*q = 0;
+					skip_more[skip_more_count++] = q + 1;
+				}
+			}
+			return;
+		}
+		while (*p && *p != ' ') {
+			p++;
+		}
+	}
+}
+
+/* what the store holds, by the first two names of a path, for the log of a restore */
+#define SUMMARY_MOST 96
+static struct { char name[48]; uint64_t entries, bytes; } summary[SUMMARY_MOST];
+static int summary_count;
+
+static void
+summarize(const char *relative, uint64_t bytes)
+{
+	char key[48];
+	size_t n = 0;
+	int slashes = 0;
+
+	for (; relative[n] && n < sizeof(key) - 1; n++) {
+		if (relative[n] == '/' && ++slashes == 2) {
+			break;
+		}
+		key[n] = relative[n];
+	}
+	key[n] = 0;
+	for (int i = 0; i < summary_count; i++) {
+		if (strcmp(summary[i].name, key) == 0) {
+			summary[i].entries++;
+			summary[i].bytes += bytes;
+			return;
+		}
+	}
+	if (summary_count < SUMMARY_MOST) {
+		strcpy(summary[summary_count].name, key);
+		summary[summary_count].entries = 1;
+		summary[summary_count].bytes = bytes;
+		summary_count++;
+	}
+}
+
 static int
 contains(const char *haystack, const char *needle)
 {
@@ -959,9 +1034,14 @@ skip_on_load(const char *relative)
 	    strncmp(relative, "Caches/", 7) == 0) {
 		return 1;
 	}
+	for (int i = 0; i < skip_more_count; i++) {
+		if (skip_more[i][0] != 0 && contains(relative, skip_more[i])) {
+			return 1;
+		}
+	}
 	return contains(relative, "Preferences/com.apple.celestial") || contains(relative, "Preferences/com.apple.mediaserverd") ||
 	    contains(relative, "Preferences/com.apple.audio") || contains(relative, "audiomxd") ||
-	    contains(relative, "coreaudio");
+	    contains(relative, "coreaudio") || contains(relative, "SplashBoard");
 }
 
 /*
@@ -991,6 +1071,9 @@ unpack_one(int make)
 	relative[e.pathlen] = 0;
 	if (make && !whole_path(relative, e.pathlen)) {
 		make = 0;               /* read past it: an archive is not to make names of its own choosing */
+	}
+	if (make) {
+		summarize(relative, e.kind == ENT_FILE ? e.size : 0);
 	}
 	if (make && skip_on_load(relative)) {
 		make = 0;               /* read past it: made again by whoever keeps it (see skip_on_load) */
@@ -1188,6 +1271,7 @@ pass(const struct head *h, int make)
 static int
 load(void)
 {
+	read_skip_args();
 	struct head h;
 	int best;
 
@@ -1227,7 +1311,13 @@ load(void)
 	printf("var_store: %llu directories, %llu files (%llu bytes), %llu links back in /private/var\n",
 	    (unsigned long long)made_dirs, (unsigned long long)made_files, (unsigned long long)made_bytes,
 	    (unsigned long long)made_links);
-	printf("var_store: %u entries left out on purpose (caches, the audio server's preferences)\n", skipped_on_load);
+	for (int i = 0; i < summary_count; i++) {
+		if (summary[i].bytes > (1u << 20) || summary[i].entries > 400) {
+			printf("var_store: held %-40s %6llu entries %10llu bytes\n", summary[i].name, (unsigned long long)summary[i].entries,
+			    (unsigned long long)summary[i].bytes);
+		}
+	}
+	printf("var_store: %u entries left out on purpose (caches, snapshots, the audio server's preferences)\n", skipped_on_load);
 	if (short_files != 0) {
 		printf("var_store: %llu files did not fit: %llu bytes of them are not there\n",
 		    (unsigned long long)short_files, (unsigned long long)lost_bytes);

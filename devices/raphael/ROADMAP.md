@@ -46,8 +46,11 @@ The order is roughly the order in which things matter. See [README.md](README.md
 
 ## D. Optional: third-party software
 
-- [~] **Package manager** (Procursus + Sileo under `/var/jb`): exists upstream as the `JB=1` image option, not tried on
-      this phone yet. See the README. No jailbreak exploit is needed: this kernel does not enforce code signing.
+- [~] **Package manager** (Procursus + Sileo under `/var/jb`): the `JB=1` image option. Sileo works, but with it in the image
+      sound is refused for minutes after boot and, once Sileo has drawn, text becomes black blocks and the app-switcher
+      cards flat green. Not for daily use until those are fixed. No jailbreak exploit is needed: this kernel does not
+      enforce code signing.
+- [ ] **Packages that stay installed** after a reboot (`var_store` skips `/var/jb`).
 
 ## E. Newer iOS
 
