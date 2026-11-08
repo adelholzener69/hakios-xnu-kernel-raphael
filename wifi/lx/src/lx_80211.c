@@ -90,6 +90,7 @@ struct lx_radio {
 	volatile int scan;			/* 0: none, 1: running, 2: over, 3: given up by the driver */
 	unsigned frames, others;		/* received in all, and of them neither beacon nor probe response */
 	unsigned heard_count, heard_lost;
+	unsigned long long up_at;		/* when the radio was last started (a scan just after hears nothing: boundary_scan retries) */
 	struct lx_heard heard[HEARD_MOST];
 	uint8_t want[32], want_length;		/* the name of the network that is wanted ... */
 	uint8_t want_bssid[6];			/* ... and, if not all zero, the access point of that name that is wanted */
@@ -1001,6 +1002,7 @@ station_up(struct lx_radio *radio)
 	printf("lx: the radio is started: %d\n", ret);
 	if (ret == 0) {
 		radio->started = true;
+		radio->up_at = lx_os_nanoseconds();
 		ret = radio->ops->add_interface(hw, vif);
 		printf("lx: an interface in station mode is added to it: %d (Ethernet frames %s the firmware, %s it)\n", ret,
 		    vif->offload_flags & IEEE80211_OFFLOAD_ENCAP_ENABLED ? "to" : "NOT to", vif->offload_flags &
@@ -2125,6 +2127,16 @@ boundary_scan(const struct hakios_sta_scan *what)
 	}
 	began = lx_os_nanoseconds();
 	error = station_scan(radio, what->ssid, what->ssid_length <= sizeof(what->ssid) ? what->ssid_length : 0, what->passive, what);
+	/*
+	 * The first scan or two after the radio was switched off and on hear nothing (seen on the phone, 8 November: the
+	 * firmware is not yet listening although it says it is). Whoever asked would be told "no networks": ask again, twice
+	 * at most, while the radio is less than 20 s old.
+	 */
+	for (unsigned again = 0; again < 2 && error == 0 && radio->heard_count == 0 && !what->passive &&
+	    lx_os_nanoseconds() - radio->up_at < 20000000000ull; again++) {
+		lx_tell("lx: the scan just after the radio was started heard nothing: asking again\n");
+		error = station_scan(radio, what->ssid, what->ssid_length <= sizeof(what->ssid) ? what->ssid_length : 0, what->passive, what);
+	}
 	if (said < 24) {			/* (the first few are told: whoever asks goes on asking as long as the system runs) */
 		said++;
 		lx_tell("lx: a scan for the kernel: %u channels named (0: all), %s, %u ms on each (0: the radio's own): %d; %u access "
