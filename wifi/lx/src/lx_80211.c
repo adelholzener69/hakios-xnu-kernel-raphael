@@ -1081,8 +1081,13 @@ station_scan(struct lx_radio *radio, const uint8_t *name, unsigned name_length, 
 		request->req.ssids = &asked;
 		request->req.n_ssids = 1;
 	}
-	if (what != NULL && what->dwell_ms != 0) {
-		request->req.duration = what->dwell_ms;
+	if (what != NULL) {
+		/*
+		 * Beacons come every 100 ms: the 50 ms the firmware dwells by default (and what iOS asks for)
+		 * misses access points again and again. Never less than 120 ms on a channel for a scan that
+		 * somebody wants the list of.
+		 */
+		request->req.duration = what->dwell_ms > 120 ? what->dwell_ms : 120;
 	}
 	radio->scan = 1;
 	radio->frames = radio->others = radio->heard_count = radio->heard_lost = 0;
