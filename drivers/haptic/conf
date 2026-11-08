@@ -6,3 +6,9 @@ driver HAPTIC
 	file    bsd/dev/hakios.haptic.c
 	help    the vibration motor: an Awinic AW86927 driving a linear resonant actuator (haptic=N), its waveforms
 	help    from fw-haptic/
+
+driver RAPHAEL_HAPTIC
+	file    bsd/dev/hakios.raphael_haptic.c
+	default n
+	help    the Redmi K20 Pro's vibration motor: the PM8150B's haptics block driving an ERM (haptic=N). The same
+	help    /dev/hakios-haptic as HAPTIC (redwood's Awinic chip): a kernel builds one of the two, never both

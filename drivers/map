@@ -79,3 +79,4 @@ audio    bsd/dev/hakios.tfa_init.c
 audio    bsd/dev/hakios.tfa_dsp.c
 audio    bsd/dev/hakios.tfa_container.c
 audio    bsd/dev/hakios.tfa_glue.c
+haptic   bsd/dev/hakios.raphael_haptic.c
